@@ -1,5 +1,6 @@
 import socket 
 import threading
+import struct
 
 HEADER = 16
 PORT = 6969
@@ -18,18 +19,19 @@ def handle_client(conn, addr):
 
     connected = True
     while connected:
-        msg_length = conn.recv(HEADER).decode(FORMAT)
+        msg_length = conn.recv(HEADER) #.decode(FORMAT)
         if msg_length:
-            msg_length = int(msg_length)
+            unpack_len = msg_length.decode(FORMAT) #struct.unpack('!s', msg_length)[0].
+            msg_length = int(unpack_len)
             msg = conn.recv(msg_length).decode(FORMAT)
 
             if msg == DISCONNECT_MESSAGE:
+                global serverRunning
+                serverRunning = False
                 connected = False
 
             print(f"[{addr}] {msg}")
             conn.send("Msg received".encode(FORMAT))
-    global serverRunning
-    serverRunning = False
     conn.close()
     
     
