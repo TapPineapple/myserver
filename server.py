@@ -2,7 +2,6 @@ import socket
 import threading
 import struct
 
-HEADER = 16
 PORT = 6969
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
@@ -19,19 +18,20 @@ def handle_client(conn, addr):
 
     connected = True
     while connected:
-        msg_length = conn.recv(HEADER) #.decode(FORMAT)
-        if msg_length:
-            unpack_len = msg_length.decode(FORMAT) #struct.unpack('!s', msg_length)[0].
-            msg_length = int(unpack_len)
-            msg = conn.recv(msg_length).decode(FORMAT)
+        
+        operation = conn.recv(4) #recieves 4 byte UINT
+        operation = struct.unpack('<I', operation)[0]
+        #forgive me for what i'm about to write (why does python not have a switch statement? for multithreaded stuff like this dictionarys with methods seems painful)
+        if (operation == 2):
+            msg_length = conn.recv(4)
+            msg_length = struct.unpack('<i', msg_length)[0]
 
-            if msg == DISCONNECT_MESSAGE:
-                global serverRunning
-                serverRunning = False
-                connected = False
-
+            msg = conn.recv(msg_length).decode(FORMAT) 
             print(f"[{addr}] {msg}")
             conn.send("Msg received".encode(FORMAT))
+            
+
+
     conn.close()
     
     
